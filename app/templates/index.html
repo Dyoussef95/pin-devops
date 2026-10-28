@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow | Gestión de tareas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/">
+      <span class="brand-icon">T</span>
+      <span>TaskFlow<small>WORKSPACE</small></span>
+    </a>
+
+    <p class="nav-label">MENÚ PRINCIPAL</p>
+    <a class="nav-item active" href="/">▦ <span>Panel general</span></a>
+    <a class="nav-item" href="#tasks">☷ <span>Mis tareas</span></a>
+
+    <div class="sidebar-bottom">
+      <div class="avatar">DV</div>
+      <div><strong>DevOps User</strong><small>Administrador</small></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">WORKSPACE / GENERAL</p>
+        <h1>Panel de tareas</h1>
+      </div>
+      <button class="primary-button" id="open-modal">＋ Nueva tarea</button>
+    </header>
+
+    <section class="welcome">
+      <div>
+        <p class="eyebrow light">TU ESPACIO DE TRABAJO</p>
+        <h2>Organizá tus tareas.<br>Avanzá con tus objetivos.</h2>
+        <p>Todo lo que necesitás para mantener tu trabajo en marcha.</p>
+      </div>
+      <div class="welcome-mark">✓</div>
+    </section>
+
+    <section class="stats">
+      <article class="stat-card">
+        <div class="stat-top"><span>Total de tareas</span><span class="stat-icon blue">▤</span></div>
+        <strong id="total-count">0</strong>
+        <small>En tu espacio de trabajo</small>
+      </article>
+      <article class="stat-card">
+        <div class="stat-top"><span>Pendientes</span><span class="stat-icon orange">◷</span></div>
+        <strong id="pending-count">0</strong>
+        <small>Esperando comenzar</small>
+      </article>
+      <article class="stat-card">
+        <div class="stat-top"><span>En progreso</span><span class="stat-icon purple">↗</span></div>
+        <strong id="progress-count">0</strong>
+        <small>Actualmente activas</small>
+      </article>
+      <article class="stat-card">
+        <div class="stat-top"><span>Completadas</span><span class="stat-icon green">✓</span></div>
+        <strong id="completed-count">0</strong>
+        <small>Trabajo terminado</small>
+      </article>
+    </section>
+
+    <section class="task-panel" id="tasks">
+      <div class="panel-heading">
+        <div><h2>Mis tareas</h2><p>Administrá y seguí tus actividades.</p></div>
+        <span class="task-total" id="task-total">0 tareas</span>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="⌕  Buscar una tarea..." aria-label="Buscar tareas">
+        <select id="filter" aria-label="Filtrar por estado">
+          <option value="all">Todos los estados</option>
+          <option value="pending">Pendientes</option>
+          <option value="in_progress">En progreso</option>
+          <option value="completed">Completadas</option>
+        </select>
+      </div>
+
+      <div id="task-list" class="task-list"></div>
+      <div id="empty-state" class="empty-state" hidden>
+        <span>☷</span><strong>No hay tareas para mostrar</strong>
+        <p>Probá cambiar el filtro o creá una tarea nueva.</p>
+      </div>
+    </section>
+
+    <footer>TaskFlow <span>•</span> Proyecto Integral Final DevOps</footer>
+  </main>
+
+  <dialog id="task-modal">
+    <form id="task-form">
+      <div class="modal-heading">
+        <div><p class="eyebrow">GESTIÓN DE TAREAS</p><h2>Nueva tarea</h2></div>
+        <button type="button" class="close-button" id="close-modal" aria-label="Cerrar">×</button>
+      </div>
+      <label for="title">Título</label>
+      <input id="title" name="title" maxlength="120" required placeholder="Ej. Preparar documentación">
+      <label for="description">Descripción</label>
+      <textarea id="description" name="description" maxlength="500" rows="3" placeholder="Agregá algunos detalles..."></textarea>
+      <label for="priority">Prioridad</label>
+      <select id="priority" name="priority">
+        <option value="low">Baja</option>
+        <option value="medium" selected>Media</option>
+        <option value="high">Alta</option>
+      </select>
+      <p id="form-error" class="form-error" role="alert"></p>
+      <div class="modal-actions">
+        <button type="button" class="secondary-button" id="cancel-modal">Cancelar</button>
+        <button type="submit" class="primary-button">Crear tarea</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>
