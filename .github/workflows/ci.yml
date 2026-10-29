@@ -1,4 +1,4 @@
-name: CI - TaskFlow
+name: TaskFlow - CI/CD
 
 on:
   push:
@@ -87,3 +87,45 @@ jobs:
 
       - name: Build image
         run: docker build -t taskflow:${{ github.sha }} .
+
+
+
+  deploy-local:
+    name: Deploy to local Ubuntu VM
+    runs-on: [self-hosted, Linux, X64, taskflow-local]
+    needs: [test, sonar, snyk, docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync project files
+        run: |
+          rsync -rlpt \
+            --exclude='.git/' \
+            --exclude='.venv/' \
+            --exclude='.terraform/' \
+            --exclude='terraform.tfstate*' \
+            --exclude='*.tfstate*' \
+            --exclude='Proyecto_1_TaskFlow.zip' \
+            ./ /home/ubuntu/pin-devops/
+
+      - name: Initialize Terraform
+        run: terraform -chdir=/home/ubuntu/pin-devops init -input=false
+
+      - name: Apply Terraform configuration
+        run: terraform -chdir=/home/ubuntu/pin-devops apply -auto-approve -input=false
+
+      - name: Verify TaskFlow health
+        run: |
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent http://localhost:5001/health; then
+              echo
+              echo "TaskFlow is healthy."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "TaskFlow health check failed."
+          exit 1

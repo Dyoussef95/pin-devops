@@ -11,3 +11,6 @@ crash.log
 
 # Archivos de respaldo y temporales
 *.bak
+
+# Paquete de entrega generado
+Proyecto_1_TaskFlow.zip

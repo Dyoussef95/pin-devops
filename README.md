@@ -1,126 +1,185 @@
 # TaskFlow — Proyecto Final DevOps
 
-Aplicación web de gestión de tareas con CI/CD, Docker, Terraform,
-análisis de seguridad y monitoreo.
+Aplicación web de gestión de tareas desarrollada con Flask. El proyecto integra pruebas automatizadas, CI/CD con GitHub Actions, análisis de código y dependencias, contenedorización con Docker, infraestructura como código con Terraform y monitoreo con Prometheus, Grafana y cAdvisor.
 
-## Tecnologías
+## 1. Estructura del proyecto
 
-- Python y Flask: aplicación web y API REST.
-- Pytest: pruebas automatizadas.
-- GitHub Actions: pipeline CI/CD.
-- SonarQube Cloud: análisis estático del código.
-- Snyk: análisis de vulnerabilidades de dependencias.
-- Docker: construcción y ejecución de contenedores.
-- Terraform: infraestructura como código.
-- Prometheus: recolección de métricas.
-- Grafana: visualización de métricas.
-- cAdvisor: métricas de contenedores.
-- CycloneDX: formato del SBOM.
+```text
+pin-devops/
+├── .github/workflows/ci.yml       # Pipeline CI/CD
+├── app/                           # Aplicación Flask
+├── tests/                         # Pruebas automatizadas
+├── monitoring/
+│   ├── prometheus.yml             # Configuración de Prometheus
+│   └── grafana/
+│       └── provisioning/
+│           └── datasources/
+│               └── prometheus.yml # Fuente de datos de Grafana
+├── docs/evidencias/
+│   └── grafana-dashboard.png      # Captura del dashboard
+├── security/
+│   └── sbom.cyclonedx.json        # Inventario de componentes
+├── Dockerfile                     # Imagen de TaskFlow
+├── compose.yaml                   # Servicios de monitoreo
+├── main.tf                        # Infraestructura Docker con Terraform
+├── outputs.tf                     # Salidas de Terraform
+├── requirements.txt               # Dependencias Python
+├── sonar-project.properties       # Configuración de SonarQube
+├── .terraform.lock.hcl            # Versiones bloqueadas del proveedor
+└── README.md                      # Documentación principal
+```
 
-## Aplicación
+El estado local de Terraform (`terraform.tfstate`) y los directorios de trabajo no forman parte de la entrega.
 
-La aplicación permite crear, consultar, actualizar y eliminar tareas.
+## 2. Tecnologías
 
-- `/`: interfaz web.
-- `/health`: comprobación de estado.
-- `GET /api/tasks`: listar tareas.
-- `POST /api/tasks`: crear una tarea.
-- `PATCH /api/tasks/<id>`: actualizar una tarea.
-- `DELETE /api/tasks/<id>`: eliminar una tarea.
+- Python 3.12 y Flask.
+- Pytest para pruebas automatizadas.
+- GitHub Actions para integración y despliegue continuo.
+- SonarQube Cloud para análisis estático.
+- Snyk para análisis de vulnerabilidades de dependencias.
+- Docker para construir y ejecutar la aplicación.
+- Terraform para administrar la imagen y el contenedor.
+- Prometheus para recolectar métricas.
+- Grafana para visualizar métricas.
+- cAdvisor para métricas de contenedores.
+- CycloneDX para el SBOM.
 
-Las tareas se almacenan en memoria y no persisten al reiniciar la aplicación.
+## 3. Aplicación
 
-## Pruebas
+TaskFlow permite crear, consultar, actualizar y eliminar tareas.
 
-Crear y activar un entorno virtual, instalar las dependencias y ejecutar
-las pruebas:
+| Método | Ruta | Función |
+|---|---|---|
+| GET | `/` | Interfaz web |
+| GET | `/health` | Comprobación de estado |
+| GET | `/api/tasks` | Listar tareas |
+| POST | `/api/tasks` | Crear una tarea |
+| PATCH | `/api/tasks/<id>` | Actualizar una tarea |
+| DELETE | `/api/tasks/<id>` | Eliminar una tarea |
 
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    pytest -v
+**Limitación conocida:** las tareas se almacenan en memoria y se pierden cuando se reinicia la aplicación.
 
-## CI/CD
+## 4. Ejecución de pruebas
 
-El workflow `.github/workflows/ci.yml` ejecuta las pruebas, el análisis
-con SonarQube Cloud, el análisis de dependencias con Snyk y la construcción
-de la imagen Docker.
+Desde la raíz del proyecto:
 
-Los tokens se configuran como secretos de GitHub y no deben guardarse
-en el código fuente.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pytest -v
+```
 
-## Terraform
+## 5. Integración y despliegue continuo (CI/CD)
 
-Terraform administra la imagen y el contenedor de TaskFlow.
+El workflow se encuentra en `.github/workflows/ci.yml`.
 
-    terraform init
-    terraform validate
-    terraform plan
-    terraform apply
+El pipeline contempla:
 
-La aplicación queda disponible en `http://localhost:5001` y su comprobación
-de estado en `http://localhost:5001/health`.
+1. Ejecución de pruebas automatizadas.
+2. Análisis estático con SonarQube Cloud.
+3. Análisis de dependencias con Snyk.
+4. Construcción de la imagen Docker.
+5. Despliegue en la VM Ubuntu mediante un runner self-hosted, condicionado a un `push` a la rama `main` y al éxito de los jobs anteriores.
+6. Verificación de salud mediante `/health`.
 
-Se requiere Docker en funcionamiento. El estado de Terraform es local
-y está excluido de Git.
+Los tokens `SONAR_TOKEN` y `SNYK_TOKEN` se configuran como secretos del repositorio en GitHub. No deben guardarse en el código fuente.
 
-Para eliminar la infraestructura administrada por Terraform:
+El runner self-hosted debe estar conectado y disponible para ejecutar el job de despliegue.
 
-    terraform destroy
+## 6. Docker y Terraform
 
-Este comando elimina la imagen y el contenedor administrados por Terraform. Ejecutarlo únicamente cuando se quiera desmontar la aplicación, no durante una demostración normal.
+El `Dockerfile` define la imagen de TaskFlow. Terraform administra la imagen y el contenedor mediante el proveedor Docker.
 
-## Monitoreo
+Comandos principales:
+
+```bash
+terraform init
+terraform validate
+terraform plan
+terraform apply
+```
+
+La aplicación queda disponible en:
+
+- Aplicación: `http://localhost:5001`
+- Comprobación de salud: `http://localhost:5001/health`
+
+Se requiere Docker en funcionamiento y acceso al socket local de Docker.
+
+El estado de Terraform se guarda localmente y no debe incluirse en Git ni en el ZIP de entrega. No se debe eliminar ese estado mientras Terraform administre recursos existentes.
+
+Para desmontar la infraestructura administrada por Terraform:
+
+```bash
+terraform destroy
+```
+
+Ejecutar únicamente cuando se quiera eliminar la aplicación administrada por Terraform.
+
+## 7. Monitoreo
 
 Docker Compose administra Prometheus, Grafana y cAdvisor.
 
-    docker compose config
-    docker compose up -d
-    docker compose ps
+Validar y levantar los servicios:
+
+```bash
+docker compose config
+docker compose up -d
+docker compose ps
+```
+
+Accesos locales:
 
 - TaskFlow: `http://localhost:5001`
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000`
 
-Prometheus utiliza `monitoring/prometheus.yml`. Grafana obtiene su fuente
-de datos desde la configuración ubicada en
-`monitoring/grafana/provisioning/datasources/prometheus.yml`.
+Prometheus utiliza `monitoring/prometheus.yml`. Grafana obtiene su fuente de datos desde `monitoring/grafana/provisioning/datasources/prometheus.yml`.
 
-El dashboard permite consultar métricas de CPU, actividad de disco y
-tráfico de red de los contenedores.
+El dashboard permite consultar métricas de uso de CPU, actividad de disco y tráfico de red de los contenedores. La captura de evidencia está en `docs/evidencias/grafana-dashboard.png`.
 
-Para detener los servicios de Compose:
+Para detener los servicios administrados por Compose:
 
-    docker compose down
+```bash
+docker compose down
+```
 
-Este comando detiene y elimina los contenedores administrados por Compose.
-Conserva los volúmenes nombrados mientras no se eliminen explícitamente.
-No elimina el contenedor taskflow-terraform, administrado por Terraform.
+Esto no elimina los volúmenes nombrados ni el contenedor de TaskFlow administrado por Terraform.
 
-## SBOM
+## 8. Seguridad y SBOM
 
-El archivo `sbom.cyclonedx.json` contiene el inventario de componentes
-Python detectados en el entorno virtual utilizado para generarlo.
+El inventario de componentes en formato CycloneDX está en:
 
-Para validar su formato JSON:
+`security/sbom.cyclonedx.json`
 
-    python3 -m json.tool sbom.cyclonedx.json > /dev/null
+Validar que el archivo tenga formato JSON correcto:
 
-## Archivos principales
+```bash
+python3 -m json.tool security/sbom.cyclonedx.json > /dev/null
+```
 
-- `.github/workflows/ci.yml`: pipeline CI/CD.
-- `app/`: aplicación web.
-- `tests/`: pruebas automatizadas.
-- `Dockerfile`: imagen de la aplicación.
-- `compose.yaml`: servicios de monitoreo.
-- `main.tf` y `outputs.tf`: configuración de Terraform.
-- `.terraform.lock.hcl`: versiones bloqueadas del proveedor.
-- `monitoring/`: configuración de Prometheus y Grafana.
-- `sbom.cyclonedx.json`: SBOM en formato CycloneDX.
+El SBOM documenta los componentes incluidos en el inventario generado. El análisis de dependencias se realiza mediante Snyk; ambos artefactos cumplen funciones complementarias.
 
-## Consideraciones
+## 9. Entregables de la consigna
 
-La ejecución del análisis SonarQube Cloud y Snyk requiere sus secretos
-configurados en GitHub Actions.
+| Requisito | Archivo o evidencia |
+|---|---|
+| Pipeline CI/CD | `.github/workflows/ci.yml` |
+| Infraestructura como código | `main.tf`, `outputs.tf` |
+| Contenedorización | `Dockerfile` |
+| Servicios de monitoreo | `compose.yaml`, `monitoring/` |
+| Análisis de código | SonarQube Cloud |
+| Análisis de dependencias | Snyk |
+| Inventario de componentes | `security/sbom.cyclonedx.json` |
+| Evidencia de monitoreo | `docs/evidencias/grafana-dashboard.png` |
+| Documentación | `README.md` |
 
-La configuración actual de Terraform utiliza el socket local de Docker.
+## 10. Consideraciones
+
+- SonarQube Cloud y Snyk requieren sus secretos configurados en GitHub Actions.
+- El despliegue local requiere que la VM esté encendida y el runner conectado.
+- Terraform utiliza el socket local de Docker.
+- Las tareas de la aplicación no persisten tras un reinicio.
+- La entrega comprimida debe incluir el código, las configuraciones, el SBOM, la documentación y las evidencias, pero excluir credenciales, estados de Terraform y directorios temporales.
