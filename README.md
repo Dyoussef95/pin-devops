@@ -86,8 +86,8 @@ Prometheus utiliza `monitoring/prometheus.yml`. Grafana obtiene su fuente
 de datos desde la configuración ubicada en
 `monitoring/grafana/provisioning/datasources/prometheus.yml`.
 
-El dashboard permite consultar métricas de CPU, memoria y tráfico de red
-de los contenedores.
+El dashboard permite consultar métricas de CPU, actividad de disco y
+tráfico de red de los contenedores.
 
 Para detener los servicios de Compose:
 
